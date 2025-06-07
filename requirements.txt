@@ -1,0 +1,20 @@
+# Basic LINE Bot packages
+line-bot-sdk==3.7.0
+flask==3.0.2
+
+# Environment variables management
+python-dotenv==1.0.1
+
+# Data processing and logging
+pymongo==4.6.2
+requests==2.31.0
+
+# Development tools
+pytest==8.0.2
+black==24.2.0
+flake8==7.0.0
+
+# Additional utilities
+schedule==1.2.1
+selenium==4.18.1
+beautifulsoup4==4.12.3 
