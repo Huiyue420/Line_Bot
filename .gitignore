@@ -1,9 +1,13 @@
+# 環境變數
+.env
+
 # Python
 __pycache__/
 *.py[cod]
 *$py.class
 *.so
 .Python
+env/
 build/
 develop-eggs/
 dist/
@@ -20,20 +24,26 @@ wheels/
 .installed.cfg
 *.egg
 
-# Virtual Environment
+# 虛擬環境
 venv/
 ENV/
-
-# Environment Variables
-.env
-.env.*
-!.env.example
 
 # IDE
 .idea/
 .vscode/
 *.swp
 *.swo
+
+# 資料檔案
+data/*.json
+
+# ngrok
+*.log
+.ngrok*
+
+# Environment Variables
+.env.*
+!.env.example
 
 # Logs
 *.log

@@ -1,141 +1,217 @@
 # LINE 群組管理機器人
 
-這是一個用於管理 LINE 群組的自動化機器人，主要功能包括：
-- 自動監控群組操作變更
-- 管理黑名單用戶
-- 自動踢除非法操作的用戶
-- 追蹤並處理邀請者
+這是一個基於 LINE Official Account 的群組管理機器人，提供群組監控、黑名單管理、警告系統等功能。
 
-## 專案結構
-```
-project/
-├── app.py                  # 主要的 LINE Bot 應用程式
-├── observer.py             # 群組觀察者模組（監控群組變更）
-├── utils/
-│   └── blacklist.py        # 黑名單管理模組
-├── logs/                   # 事件日誌資料夾
-│   └── *.json             # 各群組的事件記錄
-├── venv/                   # Python 虛擬環境
-├── blacklist.json         # 黑名單資料
-├── requirements.txt       # 相依套件清單
-└── README.md             # 專案說明文件
-```
+## 功能特點
 
-## 環境需求
+- 群組成員監控
+- 黑名單系統
+- 警告系統（三振出局）
+- 管理員權限管理
+- 自動踢出違規用戶
+- 群組事件記錄
+- 管理員指令系統
+
+## 系統需求
+
 - Python 3.8+
 - Flask
-- LINE Messaging API SDK
-- 其他相依套件（詳見 requirements.txt）
+- LINE Official Account（免費版即可）
+- 可公開訪問的伺服器（用於接收 Webhook）
 
 ## 安裝步驟
 
-### 1. 建立虛擬環境
+1. 克隆專案：
 ```bash
-# 建立虛擬環境
-python -m venv venv
+git clone https://github.com/Huiyue420/Line_Bot.git
+cd line_bot
+```
 
-# 啟動虛擬環境
-# Windows PowerShell:
-.\venv\Scripts\Activate.ps1
-# Windows CMD:
-.\venv\Scripts\activate.bat
-# Linux/Mac:
+2. 建立虛擬環境：
+```bash
+python -m venv venv
+# Windows
+.\venv\Scripts\activate
+# Linux/Mac
 source venv/bin/activate
 ```
 
-### 2. 安裝相依套件
+3. 安裝依賴：
 ```bash
 pip install -r requirements.txt
 ```
 
-### 3. 設定環境變數
-建立 `.env` 檔案並填入以下資訊：
+4. 設定環境變數：
+   - 在專案根目錄建立 `.env` 文件
+   - 填入以下內容：
 ```
-LINE_CHANNEL_ACCESS_TOKEN=你的頻道存取權杖
-LINE_CHANNEL_SECRET=你的頻道密鑰
-LINE_OBSERVER_ACCOUNT=觀察者帳號
-LINE_OBSERVER_PASSWORD=觀察者密碼
-ADMIN_IDS=管理員1,管理員2
-TARGET_GROUP_IDS=群組1,群組2
-
-# 資料庫設定（如果使用 MongoDB）
-MONGODB_URI=mongodb://localhost:27017/
-DATABASE_NAME=line_bot_db
+LINE_CHANNEL_ACCESS_TOKEN=你的Channel存取權杖
+LINE_CHANNEL_SECRET=你的Channel密鑰
+NGROK_AUTH_TOKEN=你的ngrok_authtoken
 ```
 
-### 4. LINE Developer 設定
-1. 在 [LINE Developers Console](https://developers.line.biz/console/) 建立新的 Provider
-2. 建立一個 Messaging API Channel
-3. 取得 Channel Secret 和 Channel Access Token
-4. 設定 Webhook URL：`https://你的網域/callback`
-5. 開啟 Webhook 接收功能
+   - 取得 ngrok authtoken：
+     1. 註冊 [ngrok 帳號](https://dashboard.ngrok.com/signup)
+     2. 登入後前往 [authtoken 頁面](https://dashboard.ngrok.com/get-started/your-authtoken)
+     3. 複製 authtoken 並填入 `.env` 檔案
 
-## 功能說明
+## LINE Official Account 設置
 
-### 1. 群組監控功能（observer.py）
-- 使用混合式架構（官方 API + 非官方客戶端）監控群組
-- 自動偵測：
-  - 成員變動（誰被踢出）
-  - 相簿變更
-  - 公告變更
-- 自動記錄所有變更到 logs/ 目錄
+1. 申請 LINE 官方帳號：
+   - 前往 [LINE Official Account](https://www.linebiz.com/tw/service/line-official-account/)
+   - 選擇免費方案
+   - 完成基本設定
 
-### 2. 黑名單管理（utils/blacklist.py）
-- 完整的黑名單管理系統
-- 記錄所有操作歷史
-- 自動踢出黑名單用戶
-- 支援黑名單的匯入/匯出
+2. 開啟 Messaging API：
+   - 登入 [LINE Developers Console](https://developers.line.biz/console/)
+   - 建立 Provider（如果沒有）
+   - 選擇您的官方帳號
+   - 在 Messaging API 設定中：
+     * 生成 Channel access token
+     * 記下 Channel secret
+     * 設定 Webhook URL（開發時會由 ngrok 提供）
 
-### 3. 管理員指令
-在群組中可使用以下指令（需要管理員權限）：
-- `!黑名單`：查看黑名單列表
-- `!封鎖 <user_id>`：將用戶加入黑名單
-- `!解除 <user_id>`：從黑名單移除用戶
-- `!歷史記錄`：查看最近的操作記錄
+3. 設定 Webhook（重要）：
+   - 在 LINE Developers Console 中：
+     * 選擇你的 Provider
+     * 點擊你的 LINE Official Account Channel
+     * 在左側選單找到「Messaging API」設定
+   - 在「Webhook settings」區塊：
+     * 填入 Webhook URL：`https://你的網域/callback`
+     * 如果使用 ngrok：`https://xxxx-xxx-xxx-xxx-xxx.ngrok.io/callback`
+     * 點擊「Update」儲存 URL
+     * 將「Use webhook」設定為「Enabled」（開啟）
+     * 可以點擊「Verify」測試連線
+   - 在「Response settings」區塊：
+     * 關閉「Auto-reply messages」（重要！）
+     * 關閉「Greeting messages」（重要！）
+     * 將「Chat」功能設為「Disabled」
+
+4. 確認設定：
+   - Webhook URL 已正確填入並更新
+   - Webhook 功能已啟用
+   - 自動回覆訊息已關閉
+   - 伺服器正在運行
+   - 使用 `!help` 指令測試機器人
+
+注意：如果沒有正確設定 Webhook 或關閉自動回覆，機器人會：
+- 無法接收或處理群組訊息
+- 只會發送預設的自動回覆訊息
+- 無法執行任何指令
+
+## 開發環境設置
+
+1. 使用 ngrok 進行本地開發：
+   - 確保已經設定好 `.env` 檔案中的 `NGROK_AUTH_TOKEN`
+   - 如果沒有看到通道建立成功的訊息，請檢查：
+     * `.env` 檔案是否存在
+     * `NGROK_AUTH_TOKEN` 是否正確
+     * 是否已經啟動虛擬環境
+```bash
+# 啟動帶有 ngrok 的開發伺服器
+python run_with_ngrok.py
+```
+   - 成功時會顯示：
+     * Public URL（公開網址）
+     * Webhook URL（LINE Bot 設定用的網址）
+   - 將 Webhook URL 設定到 LINE Developers Console
+   - 注意：每次重新啟動 ngrok，網址都會改變
+
+2. 直接啟動（需要可公開訪問的網址）：
+```bash
+python app.py
+```
+
+## 部署說明
+
+1. 本地開發：
+   - 使用 `run_with_ngrok.py` 啟動，會自動提供臨時的公開網址
+   - 適合開發和測試階段
+
+2. 正式部署：
+   - 需要一個可公開訪問的伺服器
+   - 建議使用：
+     * Heroku
+     * Railway
+     * GCP
+     * Azure
+   - 使用 `gunicorn` 作為生產環境伺服器：
+```bash
+gunicorn app:app
+```
+
+## 使用方法
+
+1. 加入機器人為好友：
+   - 掃描您的 LINE 官方帳號 QR Code
+   - 加入為好友
+
+2. 邀請機器人到群組：
+   - 在群組中選擇「邀請」
+   - 選擇您的官方帳號
+   - 邀請者會自動成為該群組的第一位管理員
+
+3. 一般指令：
+   - `!help` - 顯示幫助訊息
+   - `!status` - 查看機器人狀態
+   - `!report [@用戶] [原因]` - 回報違規用戶
+
+4. 管理員指令：
+   - `!admin list` - 查看管理員列表
+   - `!admin add [@用戶]` - 新增管理員
+   - `!admin remove [@用戶]` - 移除管理員
+   - `!blacklist` - 查看黑名單
+   - `!warn [@用戶] [原因]` - 對用戶發出警告
+   - `!unwarn [@用戶]` - 移除用戶警告
+   - `!warnings [@用戶]` - 查看用戶警告記錄
+   - `!kick [@用戶] [原因]` - 將用戶踢出群組
+
+5. 自動功能：
+   - 警告累計 3 次自動踢出並加入黑名單
+   - 被踢出的用戶自動加入黑名單
+   - 黑名單用戶嘗試加入群組時自動踢出
+   - 自動保護管理員不被踢出
+
+## 專案結構
+
+```
+line_bot/
+├── app.py              # 主應用程式
+├── run_with_ngrok.py   # 開發環境啟動腳本
+├── requirements.txt    # 相依套件
+├── .env               # 環境變數（請自行建立）
+├── .gitignore         # Git 忽略檔案
+├── data/              # 資料儲存目錄
+│   ├── admins.json    # 管理員資料
+│   ├── warnings.json  # 警告記錄
+│   └── blacklist.json # 黑名單資料
+└── utils/
+    ├── admin.py       # 管理員權限管理
+    ├── warning.py     # 警告系統
+    ├── line_bot.py    # LINE Bot 管理模組
+    └── blacklist.py   # 黑名單管理模組
+```
 
 ## 注意事項
 
-### 安全性考慮
-1. 妥善保管以下敏感資訊：
-   - Channel Secret
-   - Channel Access Token
-   - 觀察者帳號密碼
-2. 建議使用小號作為觀察者帳號
-3. 定期備份黑名單和記錄檔
+1. 免費版限制：
+   - 每月訊息則數上限：500 則
+   - 好友數上限：500 個
+   - API 呼叫限制：
+     * Push Message：每分鐘 500 次
+     * Reply Message：每分鐘 1000 次
+     * Multicast：每次最多 150 個接收者
 
-### 使用限制
-1. 機器人需要群組管理員權限
-2. 觀察者帳號需要加入目標群組
-3. 建議部署到有固定 IP 的伺服器
-4. 使用非官方客戶端可能有被 LINE 封鎖的風險
-
-## 開發進度
-
-### 已完成功能
-- [x] 基本的 LINE Bot 框架
-- [x] 黑名單管理系統
-- [x] 群組監控模組
-- [x] 管理員指令介面
-- [x] 事件記錄系統
-
-### 進行中
-- [ ] 資料庫整合（目前使用 JSON 檔案）
-- [ ] 管理員網頁介面
-- [ ] 自訂回應訊息
-- [ ] 群組設定備份功能
+2. 開發注意事項：
+   - 不要將 `.env` 檔案上傳到 Git
+   - 定期備份 data 目錄下的資料
+   - 使用 `ngrok` 時，每次重啟都會得到新的 URL
+   - 正式部署時建議使用固定網址
 
 ## 貢獻指南
-1. Fork 專案
-2. 建立功能分支
-3. 提交變更
-4. 發送 Pull Request
 
-## 授權
-待定
+歡迎提交 Issue 和 Pull Request！
 
-## 更新日誌
+## 授權條款
 
-### [0.1.0] - 2024-03-XX
-- 初始版本
-- 基本功能實作
-- 文件建立 
+MIT License
